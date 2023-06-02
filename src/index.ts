@@ -28,9 +28,24 @@ processQueue.on('completed', (job: Queue.Job) => {
     console.log(`Job ${job.id} has been completed`);
 });
 
-// Listener para quando um trabalho falhou
-processQueue.on('failed', (job: Queue.Job, error: Error) => {
-    console.log(`Job ${job.id} failed with error ${error.message}`);
+// Evento "failed" é disparado quando um job falha
+processQueue.on('failed', async (job, error) => {
+    try {
+        // Armazene as informações do job falho no banco de dados
+        const jobFailure = {
+            jobId: job.id,
+            data: job.data,
+            error: error.message,
+            timestamp: new Date(),
+        };
+
+        // Código para salvar as informações em um banco de dados
+        // Exemplo: usando um ORM como o TypeORM ou uma conexão direta com o banco de dados
+
+        console.log('Job falho:', jobFailure);
+    } catch (error) {
+        console.error('Erro ao salvar informações do job falho:', error);
+    }
 });
 
 const app = express();
@@ -39,11 +54,12 @@ app.use(bodyParser.json());
 // Rota para enfileirar um trabalho
 app.post('/enqueue', (req: Request, res: Response) => {
     processQueue.add({}, {
-        attempts: 5,
+        attempts: 5, // número máximo de tentativas permitidas
         backoff: {
-            type: 'exponential',
-            delay: 5000,
+            type: 'exponential', // estratégia de backoff exponencial
+            delay: 5000, // intervalo de tempo entre as tentativas (em milissegundos)
         },
+        removeOnFail: false, // manter o job na fila após falhar
     });
     res.json({ message: 'Job enqueued' });
 });
