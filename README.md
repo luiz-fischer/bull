@@ -23,6 +23,8 @@ Este projeto é uma prova de conceito de uma API Express Node.js que usa uma fil
 
 ## Observações
 
-Esta POC é apenas um exemplo de como uma fila de trabalhos pode ser usada em uma API Express para lidar com cargas pesadas. Na implementação real, você precisaria tratar os erros e falhas de forma adequada, e também seria necessário adicionar testes e logging.
+Esta POC é apenas um exemplo de como uma fila de trabalhos pode ser usada em uma API Express para lidar com cargas pesadas. Na implementação real, precisaria tratar os erros e falhas de forma adequada, e também seria necessário adicionar testes e logging.
 
+Com bullmq endpoint (/enqueue)
+Sem bullmq endpoint (/enqueue2)
 

@@ -6,6 +6,6 @@ config:
 scenarios:
   - flow:
     - post:
-        url: "/enqueue2"
+        url: "/enqueue"
         json:
           someKey: 'someValue'  # substitua por qualquer carga útil necessária para o serviço
