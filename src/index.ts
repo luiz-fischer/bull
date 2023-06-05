@@ -94,6 +94,19 @@ app.post('/enqueue', async (req: Request, res: Response) => {
     }
 });
 
+app.post('/enqueue2', async (req: Request, res: Response) => {
+    try {
+        // Simula um processamento longo
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log(`Job completed`);
+        res.json({ message: 'Job completed' });
+    } catch (error) {
+        console.error('Error completing job:', error);
+        res.status(500).json({ error: 'Error completing job' });
+    }
+});
+
+
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });

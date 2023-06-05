@@ -1,0 +1,11 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 20
+scenarios:
+  - flow:
+    - post:
+        url: "/enqueue2"
+        json:
+          someKey: 'someValue'  # substitua por qualquer carga útil necessária para o serviço

@@ -7,6 +7,7 @@ Este projeto é uma prova de conceito de uma API Express Node.js que usa uma fil
 - Node.js
 - Yarn
 - Docker e Docker Compose
+- artillery(npm install -g artillery)
 
 ## Instruções de instalação
 
