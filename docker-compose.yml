@@ -1,12 +1,29 @@
-version: '3'
-services:
-  redis:
-    image: 'redis:latest'
-    ports:
-      - '6379:6379'
-  redis-commander:
-    image: 'rediscommander/redis-commander:latest'
-    environment:
-      - REDIS_HOSTS=local:redis:6379
-    ports:
-      - '8081:8081'
+  version: '3'
+  services:
+    redis:
+      image: 'redis:latest'
+      ports:
+        - '6379:6379'
+    redis-commander:
+      image: 'rediscommander/redis-commander:latest'
+      environment:
+        - REDIS_HOSTS=local:redis:6379
+      ports:
+        - '8081:8081'
+    rabbitmq:
+      image: rabbitmq:3.9-management
+      ports:
+        - '5672:5672' # Porta para comunicação AMQP
+        - '15672:15672' # Porta para acesso ao RabbitMQ Management UI
+      volumes:
+        - rabbitmq_data:/var/lib/rabbitmq # Volume para persistir os dados do RabbitMQ
+      environment:
+        - RABBITMQ_DEFAULT_USER=guest # Usuário padrão
+        - RABBITMQ_DEFAULT_PASS=guest # Senha padrão
+      healthcheck:
+        test: [ 'CMD', 'rabbitmqctl', 'node_health_check' ]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+  volumes:
+    rabbitmq_data:
