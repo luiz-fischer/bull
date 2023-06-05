@@ -6,16 +6,23 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "docker:start": "docker compose up -d && yarn start",
-    "load-test": "ts-node src/load-test.ts"
+    "start:rabbitmq": "ts-node-dev --respawn --transpile-only src/rabbitmq/index.ts",
+    "docker:post": "docker compose up -d && yarn start",
+    "docker:rabbitmq": "docker compose up -d && yarn start:rabbitmq",
+    "load:test:post": "ts-node src/load-test.ts",
+    "load:test:rabbitmq": "ts-node src/rabbitmq/load-test.ts"
   },
   "dependencies": {
+    "@types/rsmq": "^0.8.4",
+    "amqplib": "^0.10.3",
     "body-parser": "^1.20.2",
     "bull": "^4.10.4",
+    "bullmq": "^3.15.0",
     "express": "^4.18.2",
     "redis": "^4.6.7"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.1",
     "@types/axios": "^0.14.0",
     "@types/body-parser": "^1.19.2",
     "@types/bull": "^4.10.0",

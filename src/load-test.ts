@@ -17,6 +17,6 @@ async function sendRequests(url: string, totalRequests: number) {
 }
 
 const apiUrl = 'http://localhost:3000/enqueue'; // substitua pela URL correta da sua API
-const numRequests = 100; // número total de solicitações a serem enviadas
+const numRequests = 10000; // número total de solicitações a serem enviadas
 
 sendRequests(apiUrl, numRequests);

@@ -1,67 +1,97 @@
 import express, { Request, Response } from 'express';
-import bodyParser from 'body-parser';
-import Queue, { QueueOptions } from 'bull';
-import redis from 'redis';
+import { Queue, Worker, Job, QueueEvents, ConnectionOptions } from 'bullmq';
 
-// Crie a fila de trabalhos
-const processQueue = new Queue('process', {
-    redis: {
-        host: 'localhost',
-        port: 6379,
-        maxRetriesPerRequest: 30, // Aumente o limite de tentativas para 30 (ou o valor desejado)
-    } as QueueOptions['redis'],
-});
+const app = express();
+app.use(express.json());
 
-// Defina o processador da fila
-processQueue.process(async (job: Queue.Job) => {
+const queueName = 'process';
+
+// Define as opções de conexão Redis
+const redisConnectionOptions: ConnectionOptions = {
+    host: 'localhost',
+    port: 6379,
+};
+
+// Cria uma instância da fila
+const queue = new Queue(queueName, { connection: redisConnectionOptions });
+
+// Cria uma instância do worker
+const worker = new Worker(queueName, async (job: Job) => {
     console.log(`Processing job ${job.id}`);
-    // Simulate long and potentially failing processing
-    if (Math.random() < 0.5) {
-        throw new Error('Failed processing');
-    }
+    // Simula um processamento longo
     await new Promise(resolve => setTimeout(resolve, 5000));
     console.log(`Completed job ${job.id}`);
-});
+}, { connection: redisConnectionOptions });
 
-// Listener para quando um trabalho foi concluído
-processQueue.on('completed', (job: Queue.Job) => {
+// Obtém o número de processadores disponíveis na instância
+const numProcessors = require('os').cpus().length;
+
+// Cria várias instâncias do worker, uma por processador
+const workers: Worker[] = [];
+for (let i = 0; i < numProcessors; i++) {
+    const worker = new Worker(queueName, async (job: Job) => {
+        console.log(`Processing job ${job.id} on processor ${i + 1}`);
+        // Simula um processamento longo
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.log(`Completed job ${job.id}`);
+    }, {
+        connection: redisConnectionOptions,
+        concurrency: 1, // Processa apenas um trabalho por vez
+    });
+    workers.push(worker);
+}
+
+// Cria uma instância do QueueEvents
+const queueEvents = new QueueEvents(queueName, { connection: redisConnectionOptions });
+
+// Listener para quando um trabalho é concluído
+worker.on('completed', (job: Job) => {
     console.log(`Job ${job.id} has been completed`);
 });
 
-// Evento "failed" é disparado quando um job falha
-processQueue.on('failed', async (job, error) => {
+// Evento "failed" é disparado quando um trabalho falha
+worker.on('failed', async (job: Job<any, any, string> | undefined, error: Error) => {
     try {
-        // Armazene as informações do job falho no banco de dados
-        const jobFailure = {
-            jobId: job.id,
-            data: job.data,
-            error: error.message,
-            timestamp: new Date(),
-        };
+        if (job) {
+            // Armazene as informações do trabalho falho no banco de dados
+            const jobFailure = {
+                jobId: job.id,
+                data: job.data,
+                error: error.message,
+                timestamp: new Date(),
+            };
 
-        // Código para salvar as informações em um banco de dados
-        // Exemplo: usando um ORM como o TypeORM ou uma conexão direta com o banco de dados
+            // Código para salvar as informações em um banco de dados
+            // Exemplo: usando um ORM como o TypeORM ou uma conexão direta com o banco de dados
 
-        console.log('Job falho:', jobFailure);
+            console.log('Job failed:', jobFailure);
+        } else {
+            console.log('Job failed with undefined job:', error);
+        }
     } catch (error) {
-        console.error('Erro ao salvar informações do job falho:', error);
+        console.error('Error saving failed job information:', error);
     }
 });
 
-const app = express();
-app.use(bodyParser.json());
-
 // Rota para enfileirar um trabalho
-app.post('/enqueue', (req: Request, res: Response) => {
-    processQueue.add({}, {
-        attempts: 5, // número máximo de tentativas permitidas
-        backoff: {
-            type: 'exponential', // estratégia de backoff exponencial
-            delay: 5000, // intervalo de tempo entre as tentativas (em milissegundos)
-        },
-        removeOnFail: false, // manter o job na fila após falhar
-    });
-    res.json({ message: 'Job enqueued' });
+app.post('/enqueue', async (req: Request, res: Response) => {
+    try {
+        const job = await queue.add('process', {}, {
+            attempts: 5, // número máximo de tentativas permitidas
+            backoff: {
+                type: 'exponential', // estratégia de backoff exponencial
+                delay: 5000, // intervalo de tempo entre as tentativas (em milissegundos)
+            },
+            removeOnFail: false, // manter o trabalho na fila após falhar
+            removeOnComplete: true, // remover o trabalho da fila após ser concluído
+        });
+
+        console.log(`Job enqueued with ID: ${job.id}`);
+        res.json({ message: 'Job enqueued' });
+    } catch (error) {
+        console.error('Error enqueueing job:', error);
+        res.status(500).json({ error: 'Error enqueueing job' });
+    }
 });
 
 app.listen(3000, () => {
