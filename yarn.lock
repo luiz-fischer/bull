@@ -398,10 +398,10 @@ bull@*, bull@^4.10.4:
     semver "^7.3.2"
     uuid "^8.3.0"
 
-bullmq@^3.15.0:
-  version "3.15.0"
-  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-3.15.0.tgz#e58dd643b6f06040d50263f2672c0f576dbb041a"
-  integrity sha512-U0LSRjuoyIBpnE62T4maCWMYEt3qdBCa1lnlPxYKQmRF/Y+FQ9W6iW5JvNNN+NA5Jet7k0uX71a93EX1zGnrhw==
+bullmq@^3.15.8:
+  version "3.15.8"
+  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-3.15.8.tgz#e8ec5b46b0b7d7ce57e509280d03745109411e05"
+  integrity sha512-k3uimHGhl5svqD7SEak+iI6c5DxeLOaOXzCufI9Ic0ST3nJr69v71TGR4cXCTXdgCff3tLec5HgoBnfyWjgn5A==
   dependencies:
     cron-parser "^4.6.0"
     glob "^8.0.3"
